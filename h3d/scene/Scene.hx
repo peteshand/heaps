@@ -470,4 +470,18 @@ class Scene extends Object implements h3d.IDrawable implements hxd.SceneEvents.I
 	}
 	#end
 
+	var listeners:Array<{event:String,callback:h3d.scene.Object -> Void}> = [];
+	public function listen(event:String, callback:h3d.scene.Object -> Void)
+	{
+		listeners.push({event:event,callback:callback});
+	}
+
+	public function dispatch(event:String, child:h3d.scene.Object)
+	{
+		for (listener in listeners){
+			if (listener.event == event)
+				listener.callback(child);
+		}
+	}
+
 }

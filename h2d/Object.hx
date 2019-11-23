@@ -18,6 +18,11 @@ class Object #if (domkit && !domkit_heaps) implements domkit.Model<h2d.Object> #
 		The parent object in the scene tree.
 	**/
 	public var parent(default, null) : Object;
+	
+	/**
+		The scene.
+	**/
+	public var scene(default, null) : Scene;
 
 	/**
 		How many immediate children this object has.
@@ -346,6 +351,7 @@ class Object #if (domkit && !domkit_heaps) implements domkit.Model<h2d.Object> #
 		if( !allocated && s.allocated )
 			s.onRemove();
 		s.parent = this;
+		s.scene = getScene();
 		s.parentContainer = parentContainer;
 		s.posChanged = true;
 		// ensure that proper alloc/delete is done if we change parent
@@ -373,6 +379,8 @@ class Object #if (domkit && !domkit_heaps) implements domkit.Model<h2d.Object> #
 
 	// kept for internal init
 	function onAdd() {
+		if (!allocated && scene)
+			scene.dispatch("add", this);
 		allocated = true;
 		if( filter != null )
 			filter.bind(this);
@@ -382,6 +390,8 @@ class Object #if (domkit && !domkit_heaps) implements domkit.Model<h2d.Object> #
 
 	// kept for internal cleanup
 	function onRemove() {
+		if (allocated && scene)
+			scene.dispatch("remove", this);
 		allocated = false;
 		if( filter != null )
 			filter.unbind(this);
@@ -405,6 +415,7 @@ class Object #if (domkit && !domkit_heaps) implements domkit.Model<h2d.Object> #
 		if( children.remove(s) ) {
 			if( s.allocated ) s.onRemove();
 			s.parent = null;
+			s.scene = null;
 			if( s.parentContainer != null ) s.setParentContainer(null);
 			s.posChanged = true;
 			#if domkit

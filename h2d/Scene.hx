@@ -747,5 +747,17 @@ class Scene extends Layers implements h3d.IDrawable implements hxd.SceneEvents.I
 		return new Bitmap(target);
 	}
 
+	var listeners:Array<{event:String,callback:h2d.Object -> Void}> = [];
+	public function listen(event:String, callback:h2d.Object -> Void)
+	{
+		listeners.push({event:event,callback:callback});
+	}
 
+	public function dispatch(event:String, child:h2d.Object)
+	{
+		for (listener in listeners){
+			if (listener.event == event)
+				listener.callback(child);
+		}
+	}
 }

@@ -40,6 +40,11 @@ class Object implements hxd.impl.Serializable {
 		The parent object in the scene tree.
 	**/
 	public var parent(default, null) : Object;
+	
+	/**
+		The scene.
+	**/
+	public var scene(default, null) : Scene;
 
 	/**
 		How many immediate children this object has.
@@ -415,6 +420,7 @@ class Object implements hxd.impl.Serializable {
 		for( c in children ) {
 			var c = c.clone();
 			c.parent = o;
+			c.scene = getScene();
 			o.children.push(c);
 		}
 		return o;
@@ -449,6 +455,7 @@ class Object implements hxd.impl.Serializable {
 		if( !allocated && o.allocated )
 			o.onRemove();
 		o.parent = this;
+		o.scene = getScene();
 		o.posChanged = true;
 		// ensure that proper alloc/delete is done if we change parent
 		if( allocated ) {
@@ -480,6 +487,8 @@ class Object implements hxd.impl.Serializable {
 
 	// kept for internal init
 	function onAdd() {
+		if (!allocated && scene)
+			scene.dispatch("add", this);
 		allocated = true;
 		for( c in children )
 			c.onAdd();
@@ -487,6 +496,8 @@ class Object implements hxd.impl.Serializable {
 
 	// kept for internal cleanup
 	function onRemove() {
+		if (allocated && scene)
+			scene.dispatch("remove", this);
 		allocated = false;
 		for( c in children )
 			c.onRemove();
@@ -499,6 +510,7 @@ class Object implements hxd.impl.Serializable {
 		if( children.remove(o) ) {
 			if( o.allocated ) o.onRemove();
 			o.parent = null;
+			o.scene = null;
 			o.posChanged = true;
 		}
 	}
@@ -959,8 +971,10 @@ class Object implements hxd.impl.Serializable {
 		}
 
 		// init
-		for( c in children )
+		for( c in children ) {
 			c.parent = this;
+			c.scene = getScene();
+		}
 		allocated = false;
 		posChanged = true;
 		absPos = new h3d.Matrix();
